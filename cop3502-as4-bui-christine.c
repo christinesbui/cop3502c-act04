@@ -1,0 +1,288 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+struct item_node_struct
+{
+    char name[32];
+    int count;
+    struct item_node_struct *left, *right;
+};
+
+typedef struct item_node_struct item_node;
+
+struct tree_name_node_struct
+{
+    char treeName[32];
+    struct tree_name_node_struct *left, *right, *parent;
+    item_node *theTree;
+};
+
+typedef struct tree_name_node_struct tree_name_node;
+
+/* Dr. Gerber's code that he provided for us */
+void remove_crlf(char *s) {
+
+    char *t = s + strlen(s);
+    t--;
+    while((t >= s) && (*t == '\n' || *t == '\r'))
+    {
+        *t = '\0';
+        t--;
+    }
+}
+
+/* Dr. Gerber's code that he provided for us */
+int get_next_nonblank_line(FILE *ifp, char *buf, int max_length) {
+
+    buf[0] = '\0';
+
+    while(!feof(ifp) && (buf[0] == '\0'))
+    {
+        fgets(buf, max_length, ifp);
+        remove_crlf(buf);
+    }
+
+    if(buf[0] != '\0') {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+int get_intial_line(FILE *ifp)
+{
+    char buf[32];
+    int initialLine;
+
+    get_next_nonblank_line(ifp, buf, 31);
+    sscanf(buf, "%d %d %d", &initialLine);
+
+    return initialLine;
+}
+
+tree_name_node *create_treename_node(char *name)
+{
+    // creating the tree nodes
+    tree_name_node *new_tree;
+    calloc(1, sizeof(tree_name_node));
+    strcpy(new_tree->treeName, name);
+
+    new_tree->left = NULL;
+    new_tree->right = NULL;
+    new_tree->theTree = NULL;
+
+    return new_tree;
+}
+
+void print_toptree_node(tree_name_node *toptree_node)
+{
+    // prints the top half
+    printf("node with name %s", toptree_node->treeName);
+    if(toptree_node->left)
+    {
+        printf("&s", toptree_node->left->treeName);
+    }
+
+    if(toptree_node->right)
+    {
+        printf("&s", toptree_node->right->treeName);
+    }
+    printf("\n");
+}
+
+void print_bottomtree_node(tree_name_node *bottomtree_node)
+{
+    // prints the bottom half
+    printf("node with name %s", bottomtree_node->treeName);
+    if(bottomtree_node->left)
+    {
+        printf("%s", bottomtree_node->left->treeName);
+    }
+
+    if(bottomtree_node->right)
+    {
+        printf("%s", bottomtree_node->left->treeName);
+    }
+    printf("\n");
+}
+
+tree_name_node *insert_treenode(tree_name_node *root_toptree, tree_name_node *new_node)
+{
+    // inserts the actual trees for top half
+    if(root_toptree == NULL)
+    {
+        root_toptree = new_node;
+    }
+
+    if(strcmp(root_toptree->treeName, new_node->treeName) > 0)
+    {
+        root_toptree->left = insert_treenode(root_toptree->left, new_node);
+    }
+
+    else {
+        root_toptree->right = insert_treenode(root_toptree->right, new_node);
+    }
+}
+
+tree_name_node *insert_treesnode(tree_name_node *root_bottomtree, tree_name_node *new_node)
+{
+    // inserts the bottom half of trees
+    if(root_bottomtree == NULL)
+    {
+        root_bottomtree = new_node;
+    }
+
+    if(strcmp(root_bottomtree->treeName, new_node->treeName) > 0)
+    {
+        root_bottomtree->left = insert_treenode(root_bottomtree->left, new_node);
+    }
+
+    else {
+        root_bottomtree->right = insert_treenode(root_bottomtree->right, new_node);
+    }
+}
+
+void bst_print_inorder(tree_name_node *root_toptree)
+{
+    // prints the entire thing in alphabetical order
+    if(root_toptree)
+    {
+        return;
+    }
+
+    if(root_toptree->left)
+    {
+        bst_print_inorder(root_toptree->left);
+    }
+
+    print_toptree_node(root_toptree);
+
+    if(root_toptree->right)
+    {
+        bst_print_inorder(root_toptree->right);
+    }
+}
+
+void bst_print_inorders(tree_name_node *root_bottomtree)
+{
+    // prints the entire thing in alphabetical order
+    if(root_bottomtree)
+    {
+        return;
+    }
+
+    if(root_bottomtree->left)
+    {
+        bst_print_inorder(root_bottomtree->left);
+    }
+
+    print_bottomtree_node(root_bottomtree);
+
+    if(root_bottomtree->right)
+    {
+        bst_print_inorder(root_bottomtree->right);
+    }
+}
+
+
+int height(tree_name_node *root)
+{
+    // adapting to Gerber's height function
+    int l;
+    int r;
+
+    if(!root) return 0;
+
+    l = height(root->left) + 1;
+    r = height(root->right) + 1;
+
+    if(l > r)
+    {
+        return l;
+    }
+
+    else {
+        return r;
+    }
+}
+
+tree_name_node *delete_nodes(tree_name_node *root, int key)
+{
+    // deleting the nodes
+    if(root == NULL)
+        return root;
+    //if(key < root->key)
+        //root->left = delete_nodes(root->left, key);
+    //else if(key > root->key)
+        //root->right = delete_nodes(root->right, key);
+
+    else {
+        if(root->left == NULL)
+        {
+            tree_name_node *temp = root->right;
+            free(root);
+            return temp;
+        }
+
+        else if(root->right == NULL)
+        {
+            tree_name_node *temp = root->left;
+            free(root);
+            return temp;
+        }
+
+        //root->key = temp->key;
+        //root->right = delete_nodes(root->right, temp->key);
+    }
+    return root;
+}
+
+int main()
+{
+    FILE *ifp;
+    FILE *ofp;
+    ifp = fopen("cop3502-as4-input.txt", "r");
+    ofp = fopen("cop3502-as4-output-bui-christine.txt", "w");
+    int ntree;
+    int nitem;
+    int ncommands;
+    char buf[256];
+    char name[256];
+
+    tree_name_node *toptree_node;
+    tree_name_node *bottomtree_node;
+    tree_name_node *root_toptree = NULL;
+    //tree_name_node *root_bottomtree == NULL;
+    int read_initialLine = get_intial_line(ifp);
+    //get_next_nonblank_line(buf, "%d %d %d", &ntree, &nitem, &ncommands);
+
+    for(int i = 0; i < ntree; i++)
+    {
+        get_next_nonblank_line(ifp, buf, 255);
+        sscanf(buf, "%s", name);
+        toptree_node = create_treename_node(name);
+        root_toptree = insert_treenode(root_toptree, toptree_node);
+        printf("%s\n", toptree_node->treeName);
+    }
+
+    for(int i = 0; i < ntree; i++)
+    {
+        get_next_nonblank_line(ifp, buf, 255);
+        sscanf(buf, "%s", name);
+        //bottomtree_node = create_treename_node(name);
+        //root_bottomtree = insert_treenode(root_bottomtree, bottomtree_node);
+        //printf("%s\n", bottomtree_node->treeName);
+    }
+
+    printf("===%s===", &ntree);
+    printf("=====Processing Commands======");
+    printf("%d %s found in %s");
+    printf("%d %s not found in %s");
+
+    //bst_print_inorder(root_toptree);
+    //bst_print_inorders(root_bottomtree);
+
+    fclose(ifp);
+    fclose(ofp);
+    return 0;
+}
